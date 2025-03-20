@@ -1,0 +1,143 @@
+import pandas as pd
+import numpy as np
+from sklearn import preprocessing as prepro
+from sklearn.preprocessing import StandardScaler #Standardization : KNN, SVM
+from sklearn.preprocessing import MinMaxScaler as minmax #Normalization : Decision tree
+from sklearn.preprocessing import LabelEncoder # Encoding Categorical Variables for Machine Learning
+
+#Model gen and Training
+import xgboost as xgb
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+df = pd.read_csv(r'C:\Users\dharm\Downloads\Health_Care_datasets\healthcare_dataset.csv')
+
+df.drop_duplicates(inplace=True)
+
+#print(df.isnull().sum())# checking for null values
+
+column_names = df.columns# getting Column names for the File
+
+#Filling MIssing Values with median Values
+for col in column_names:
+    missing_count = df[col].isnull().sum()
+    if missing_count>0:
+        df[col].fillna(df[col].median(), inplace = True)
+
+print("/n",df.head())
+
+columns_drop = ["Name","Date of Admission","Insurance Provider","Room Number","Doctor","Hospital","Date of Admission","Discharge Date","Billing Amount"]
+
+df.drop(columns= [col for col in columns_drop if col in df.columns], inplace= True) #Columns To be dropped can be dropped using this function
+
+print("\nAfter Dropping\n", df.head())
+
+df.to_csv("Health_data_cleaned.csv", index=False)
+
+print("\nDatasets are ready and saved as new Csv file\n")
+
+print("<---------------------------------------------------------------------------->")
+
+cleaned_df = pd.read_csv("Health_data_cleaned.csv")
+
+#------------------------------------------------------------------------------
+
+#Finding Numberical labes
+num_colu = cleaned_df.select_dtypes(include=['number']).columns
+
+numerical_col=[] # converting to List
+for x in num_colu:
+    numerical_col.append(x)
+
+#------------------------------------------------------------------------------
+scaler = StandardScaler() #Instance method
+
+# STANDARDIZATION OF CLEANED_DATA
+#THE Standardization of the data can be done only to the numberical labels
+
+print("Data After performing Standard Scaler for the numberical value")
+
+cleaned_df[numerical_col] = scaler.fit_transform(cleaned_df[numerical_col])
+
+print(cleaned_df.head())
+
+#-----------------------------------------------------------------------------
+print("before removing\n\n", cleaned_df.shape)
+
+print(" FINDING THE OUTLIERS\n")
+
+threshold = 1.9
+
+outliers = cleaned_df[~(cleaned_df[numerical_col].abs() > threshold).any(axis=1)]
+
+cleaned_df = cleaned_df[~(cleaned_df[numerical_col].abs() > threshold).any(axis=1)]
+
+if not outliers.empty:
+    print("\noutliers detected:\n",outliers)
+else:
+    print("\nNo outliers present")
+
+print("\nafter removing\n", cleaned_df.shape)
+#----------------------------------------------------------------------------
+
+# Categorical Encoder
+
+variable_colu = cleaned_df.select_dtypes(include=['object']).columns
+
+var_colu_1=[]
+for var in variable_colu:
+    var_colu_1.append(var)
+
+var_colu = ['Gender', 'Blood Type', 'Medical Condition', 'Admission Type', 'Medication', 'Test Results']
+
+label_encoder = {}
+
+
+for col_1 in var_colu:   
+    le = LabelEncoder()
+    cleaned_df[col_1] = le.fit_transform(cleaned_df[col_1])
+    label_encoder[col] = le
+
+print(cleaned_df.head())
+
+print(label_encoder)
+
+#----------------------------------------------------------------------------
+print("Completed the Preprocessing Step for the model")
+
+cleaned_df.to_csv("cleaned_data_complete.csv",index=False)
+
+print("\nThe Cleaned dataset are saved in the Excel File: Cleaned_data_complete\n")
+
+print("=======================================================================")
+print("=======================================================================")
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+
+# Model Training Classification # XGBoost Classification Model
+
+df_model= pd.read_csv("cleaned_data_complete.csv")
+
+#Spliting features and Target values
+
+x = df_model.drop(columns=['Test Results'])
+y = df_model['Test Results']
+
+#Spliting of Training Sets
+x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.2, random_state = 42)
+
+#Initialize and train the XGBoost model
+xgb_model = xgb.XGBClassifier(objective="multi:softmax", num_class = len(y.unique()), eval_metric="mlogloss")
+xgb_model.fit(x_train, y_train)
+
+#Make prediction
+y_pred = xgb_model.predict(x_test)
+
+#evaluvate_model
+accuracy = accuracy_score(y_test,y_pred)
+print(accuracy)
+
+
+
