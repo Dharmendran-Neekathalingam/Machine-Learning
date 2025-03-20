@@ -1,0 +1,23 @@
+
+# Model Training Classification # XGBoost Classification Model
+
+df_model= pd.read_csv("cleaned_data_complete.csv")
+
+#Spliting features and Target values
+
+x = df_model.drop(columns=['Test Results'])
+y = df_model['Test Results']
+
+#Spliting of Training Sets
+x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.2, random_state = 42)
+
+#Initialize and train the XGBoost model
+xgb_model = xgb.XGBClassifier(objective="multi:softmax", num_class = len(y.unique()), eval_metric="mlogloss")
+xgb_model.fit(x_train, y_train)
+
+#Make prediction
+y_pred = xgb_model.predict(x_test)
+
+#evaluvate_model
+accuracy = accuracy_score(y_test,y_pred)
+print(accuracy)
