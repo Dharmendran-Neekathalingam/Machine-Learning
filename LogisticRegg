@@ -1,0 +1,39 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df_model= pd.read_csv("cleaned_data_complete.csv")
+
+#Spliting features and Target values
+
+x = df_model.drop(columns=['Test Results'])
+y = df_model['Test Results']
+
+# Initialize and train the logistic regression model
+log_model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+log_model.fit(x_train, y_train)
+
+# Predict on test data
+log_pred = log_model.predict(x_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, log_pred)
+print("Logistic Regression Accuracy:", accuracy)
+
+print("\nClassification Report:\n", classification_report(y_test, log_pred))
+
+# Confusion matrix
+conf_mat = confusion_matrix(y_test, log_pred)
+plt.figure(figsize=(6,5))
+sns.heatmap(conf_mat, annot=True, fmt='d', cmap='Reds')
+plt.title("Logistic Regression Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
