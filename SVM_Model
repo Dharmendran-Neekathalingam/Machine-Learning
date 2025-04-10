@@ -1,0 +1,44 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+print("Started")
+
+df_model= pd.read_csv("cleaned_data_complete.csv")
+
+#Spliting features and Target values
+
+x = df_model.drop(columns=['Test Results'])
+y = df_model['Test Results']
+
+#Spliting of Training Sets
+x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.2, random_state = 42)
+
+# Train the SVM model (One-vs-One strategy for multiclass)
+svm_model = SVC(decision_function_shape='ovo', kernel='rbf')  # 'rbf' is default kernel
+svm_model.fit(x_train, y_train)
+
+# Make predictions
+svm_pred = svm_model.predict(x_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, svm_pred)
+print("SVM Accuracy:", accuracy)
+
+print("\nClassification Report:\n", classification_report(y_test, svm_pred))
+
+#Confusion Matrix
+conf_mat = confusion_matrix(y_test, svm_pred)
+plt.figure(figsize=(6,5))
+sns.heatmap(conf_mat, annot=True, cmap="Blues", fmt='d')
+plt.title("SVM Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
+
