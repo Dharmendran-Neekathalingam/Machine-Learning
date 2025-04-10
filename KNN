@@ -1,0 +1,39 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df_model= pd.read_csv("cleaned_data_complete.csv")
+
+#Spliting features and Target values
+
+x = df_model.drop(columns=['Test Results'])
+y = df_model['Test Results']
+
+# Initialize KNN model
+knn_model = KNeighborsClassifier(n_neighbors=5)  # Try 3, 5, 7, etc.
+knn_model.fit(x_train, y_train)
+
+# Predict on test set
+knn_pred = knn_model.predict(x_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, knn_pred)
+print("KNN Accuracy:", accuracy)
+
+print("\nClassification Report:\n", classification_report(y_test, knn_pred))
+
+# Confusion matrix
+conf_mat = confusion_matrix(y_test, knn_pred)
+plt.figure(figsize=(6,5))
+sns.heatmap(conf_mat, annot=True, fmt='d', cmap='Purples')
+plt.title("KNN Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
